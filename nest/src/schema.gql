@@ -1,0 +1,56 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AuthResponseDTO {
+  accessToken: String!
+  refreshToken: String!
+  user: UserDTO!
+}
+
+input CrearUsuarioDTO {
+  email: String!
+  name: String!
+  password: String!
+  role: UserRole! = ELDERLY
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Mutation {
+  createUser(data: CrearUsuarioDTO!): UserDTO!
+  deleteUsuario(id: Int!): UserDTO!
+  login(email: String!, password: String!): AuthResponseDTO!
+  refreshToken(refreshToken: String!): AuthResponseDTO!
+  updateUsuario(data: UpdateUsuarioDTO!): UserDTO!
+}
+
+type Query {
+  userByEmail(email: String!): UserDTO
+  userByName(name: String!): UserDTO
+  users: [UserDTO!]!
+}
+
+input UpdateUsuarioDTO {
+  email: String
+  id: Int!
+  name: String
+  password: String
+  role: UserRole = ELDERLY
+}
+
+type UserDTO {
+  createdAt: DateTime!
+  email: String!
+  id: Int!
+  name: String!
+  role: UserRole!
+}
+
+enum UserRole {
+  ELDERLY
+  FAMILY
+}

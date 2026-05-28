@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ELDERLY
+  FAMILY
+}
+
+enum ActivityType {
+  MEDICATION
+  EXERCISE
+  MEDICAL_APPOINTMENT
+  OTHER
+}
+
+enum ActivityEventType {
+  ACTIVITY_REMINDER
+  ACTIVITY_COMPLETED
+  ACTIVITY_CREATED
+  ACTIVITY_SKIPPED
+  ACTIVITY_UPDATED
+  ACTIVITY_DELETED
+  ACTIVITY_RESCHEDULED
+  ACTIVITY_POSTPONED
+  LOCATION_SHARED
+}
+
+enum EvidenceType {
+  MARK
+  PHOTO
+  LOCATION
+}
+
+enum RepeatType {
+  NONE
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum ActivityStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+}
+
+enum SkipReasonType {
+  FEELING_ILL
+  NO_MEDICATION
+  FORGOT_APPOINTMENT
+  CANT_MOVE
+  NEEDS_HELP
+  OTHER
+}
+
+enum NotificationStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      UserRole
+  createdAt DateTime @default(now())
+
+  elderly       Elderly?
+  family        Family?
+
+  notifications Notification[]
+  deviceTokens  DeviceToken[]
+}
+
+model Elderly {
+  id       Int    @id @default(autoincrement())
+  linkCode String @unique @default(cuid())
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  activities     Activity[]
+  contacts       Contact[]
+  linkedFamilies FamilyLink[]
+}
+
+model Family {
+  id Int @id @default(autoincrement())
+
+  userId Int  @unique
+  user   User @relation(fields: [userId], references: [id])
+
+  linkedElderly FamilyLink[]
+}
+
+model FamilyLink {
+  id        Int      @id @default(autoincrement())
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  familyId  Int
+  elderlyId Int
+
+  family  Family  @relation(fields: [familyId], references: [id])
+  elderly Elderly @relation(fields: [elderlyId], references: [id])
+
+  @@unique([familyId, elderlyId])
+}
+
+model Activity {
+  id           Int          @id @default(autoincrement())
+  name         String
+  type         ActivityType
+  otherType    String?
+  evidenceType EvidenceType @default(MARK)
+  repeat       RepeatType   @default(NONE)
+  repeatDays   String?
+  scheduledAt  DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  elderlyId Int
+  elderly   Elderly @relation(fields: [elderlyId], references: [id])
+
+  logs   ActivityLog[]
+  events ActivityEvent[]
+}
+
+model ActivityLog {
+  id          Int            @id @default(autoincrement())
+  scheduledAt DateTime
+  status      ActivityStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  activityId Int
+  activity   Activity @relation(fields: [activityId], references: [id])
+
+  evidenceMark     EvidenceMark?
+  evidencePhoto    EvidencePhoto?
+  evidenceLocation EvidenceLocation?
+  skipReason       SkipReason?
+}
+
+model EvidenceMark {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+
+  activityLogId Int         @unique
+  activityLog   ActivityLog @relation(fields: [activityLogId], references: [id])
+}
+
+model EvidencePhoto {
+  id        Int      @id @default(autoincrement())
+  photoUrl  String
+  createdAt DateTime @default(now())
+
+  activityLogId Int         @unique
+  activityLog   ActivityLog @relation(fields: [activityLogId], references: [id])
+}
+
+model EvidenceLocation {
+  id        Int      @id @default(autoincrement())
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now())
+
+  activityLogId Int         @unique
+  activityLog   ActivityLog @relation(fields: [activityLogId], references: [id])
+}
+
+model SkipReason {
+  id        Int            @id @default(autoincrement())
+  reason    SkipReasonType
+  customReason String?
+  createdAt DateTime       @default(now())
+
+  activityLogId Int         @unique
+  activityLog   ActivityLog @relation(fields: [activityLogId], references: [id])
+}
+
+model Contact {
+  id        Int      @id @default(autoincrement())
+  name      String
+  phone     String
+  createdAt DateTime @default(now())
+
+  elderlyId Int
+  elderly   Elderly @relation(fields: [elderlyId], references: [id])
+}
+
+model ActivityEvent {
+  id   Int               @id @default(autoincrement())
+  type ActivityEventType
+  createdAt DateTime @default(now())
+
+  activityId Int
+  activity   Activity @relation(fields: [activityId], references: [id])
+
+  notifications Notification[]
+}
+
+model Notification {
+  id      Int                @id @default(autoincrement())
+  message String
+  status NotificationStatus @default(PENDING)
+  sendAt      DateTime?
+  deliveredAt DateTime?
+  isRead Boolean @default(false)
+  createdAt DateTime @default(now())
+  
+  activityEventId Int
+  activityEvent   ActivityEvent @relation(fields: [activityEventId], references: [id])
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+}
+
+model DeviceToken {
+  id       Int     @id @default(autoincrement())
+  token    String  @unique
+  isActive Boolean @default(true)
+
+  platform String // android | ios
+
+  createdAt DateTime @default(now())
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+}
