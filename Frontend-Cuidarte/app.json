@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "Cuidarte",
+    "slug": "frontend-cuidarte",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./src/assets/cuidarte-icon-v2.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./src/assets/cuidarte-splash-v2.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#458880"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "La app necesita acceso a la cámara para capturar evidencia de tus actividades.",
+        "NSLocationWhenInUseUsageDescription": "La app necesita acceso a tu ubicación para compartir evidencia de dónde realizaste la actividad."
+      }
+    },
+    "android": {
+      "permissions": ["CAMERA", "ACCESS_FINE_LOCATION"],
+      "adaptiveIcon": {
+        "foregroundImage": "./src/assets/cuidarte-icon-v2.png",
+        "backgroundColor": "#458880"
+      }
+    },
+    "plugins": [
+      "expo-camera",
+      "expo-location",
+      "expo-notifications"
+    ]
+  }
+}
